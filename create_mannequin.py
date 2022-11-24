@@ -23,13 +23,24 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
   # メニューを実行したときに呼ばれる関数
   def execute(self, context):
     scene = context.scene
-    vertsData = [(0,0,0),(0,0,1),(1,0,0)]
+    vertsData = [
+      (0,0,0),
+      (0,0,scene.mannequin_height),
+      (0,0,scene.mannequin_torso_length + scene.mannequin_inseam),
+      (0,0,scene.mannequin_inseam),
+      (scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),
+      (-scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),
+      (-scene.mannequin_shoulder_width/2-scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),
+      (scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),
+    ]
     # edgesData = [(0,1),(1,2),(2,0)]
     # facesData = [(0,1,2)]
     # メッシュ生成
-    mesh = bpy.data.meshes.new('mesh')
+    mesh = bpy.data.meshes.new('Mannequin')
     mesh.from_pydata(vertsData,[],[])
+    
     mesh.update()
+
     # オブジェクト生成
     object_utils.object_data_add(context,mesh,operator=None)
     
@@ -41,7 +52,7 @@ class CREATEMANNEQUIN_PT_CreateMannequinObject(bpy.types.Panel):
   bl_label = 'Create Mannequin'
   bl_space_type = 'VIEW_3D'
   bl_region_type = 'UI'
-  bl_category = 'Create Mannequin'
+  bl_category = 'Mannequin'
   bl_context = 'objectmode'
 
   def draw(self,context):
@@ -52,7 +63,9 @@ class CREATEMANNEQUIN_PT_CreateMannequinObject(bpy.types.Panel):
     layout.prop(scene,'mannequin_bust')
     layout.prop(scene,'mannequin_waist')
     layout.prop(scene,'mannequin_hip')
+    layout.prop(scene,'mannequin_torso_length')
     layout.prop(scene,'mannequin_upper_arm_circumference')
+    layout.prop(scene,'mannequin_head_height')
     layout.prop(scene,'mannequin_head_circumference')
     layout.prop(scene,'mannequin_shoulder_width')
     layout.prop(scene,'mannequin_back_shoulder_width')
@@ -91,10 +104,22 @@ def init_props():
     default=.91,
     min=0
   )
+  scene.mannequin_torso_length = FloatProperty(
+    name='torso_length',
+    description='',
+    default=.55,
+    min=0
+  )
   scene.mannequin_upper_arm_circumference = FloatProperty(
     name='upper arm circumference',
     description='',
     default=.26,
+    min=0
+  )
+  scene.mannequin_head_height = FloatProperty(
+    name='head height',
+    description='',
+    default=.24,
     min=0
   )
   scene.mannequin_head_circumference = FloatProperty(
@@ -102,7 +127,7 @@ def init_props():
     description='',
     default=.60,
     min=0
-  )
+  )  
   scene.mannequin_shoulder_width = FloatProperty(
     name='shoulder width',
     description='',
