@@ -3,6 +3,8 @@ from bpy.props import *
 from bpy_extras import object_utils
 
 import math
+import numpy as np
+from .libs.scipy import integrate
 
 class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
 
@@ -52,16 +54,17 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     context.object.name = 'mannequin_part'
     # オブジェクトを統合する
     for obj in bpy.data.objects:
-      print(obj.name)
-      print(obj.name.startswith('mannequin_part'))
       if obj.name.startswith('mannequin_part'):
         obj.select_set(True)
       else:
         obj.select_set(False)
     bpy.ops.object.join()
+    context.object.name = 'mannequin'
 
-
-
+    # scipy test
+    y = lambda x: np.sin(x)**2
+    integ = integrate.quad(y, 0, np.pi)
+    print(integ)
 
     # vertsData = [
     #   (0,0,0),  # 足

@@ -12,12 +12,16 @@ bl_info = {
   'category':'Object'
 }
 
+import os
+import sys
+if not os.path.join(os.path.dirname(__file__),'libs') in sys.path:
+  sys.path.append(os.path.join(os.path.dirname(__file__),'libs'))
+
 if 'bpy' in locals():
   import importlib
   importlib.reload(create_mannequin)
 else:
   from . import create_mannequin
-import bpy
 
 # アドオン有効化時の処理
 def register():
