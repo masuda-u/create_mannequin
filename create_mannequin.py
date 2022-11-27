@@ -2,6 +2,8 @@ import bpy
 from bpy.props import *
 from bpy_extras import object_utils
 
+import math
+
 class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
 
   bl_idname = 'object.create_mannequin_object'
@@ -9,35 +11,59 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
   bl_description = 'create mannequin object'
   bl_options = {'REGISTER','UNDO'}
 
-  # depth:FloatProperty(
-  #   name='深さ(m)',
-  #   description='深さを設定',
-  #   default=1.7,
-  # )
-  # radius:FloatProperty(
-  #   name='半径(m)',
-  #   description='半径を設定',
-  #   default=0.2
-  # )
-
   # メニューを実行したときに呼ばれる関数
   def execute(self, context):
     scene = context.scene
+    # 頭部
+    bpy.ops.mesh.primitive_cylinder_add(
+      radius=scene.mannequin_head_circumference/(2*math.pi),
+      depth=scene.mannequin_head_height,
+      location=(0,0,scene.mannequin_height-scene.mannequin_head_height/2)
+    )
+    # 胴体
+    bpy.ops.mesh.primitive_cylinder_add(
+      radius=scene.mannequin_bust/(2*math.pi),
+      depth=scene.mannequin_torso_length,
+      location=(0,0,scene.mannequin_inseam + scene.mannequin_torso_length/2)
+    )
+    # 腕
+    bpy.ops.mesh.primitive_cylinder_add(
+      radius=scene.mannequin_thigh_circumference/(2*math.pi),
+      depth=scene.mannequin_sleeve_length,
+      location=(scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length/2,0,scene.mannequin_torso_length + scene.mannequin_inseam - scene.mannequin_thigh_circumference/(2*math.pi)),
+      rotation=(0,math.pi/2,0)
+    )
+    # 脚
+    bpy.ops.mesh.primitive_cylinder_add(
+      radius=scene.mannequin_thigh_circumference/(2*math.pi),
+      depth=scene.mannequin_inseam,
+      location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),0,scene.mannequin_inseam/2)
+    )
+    # 足
+    bpy.ops.mesh.primitive_cube_add(
+      size=0.1,
+      location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),-scene.mannequin_foot_length/2,0.1/2),
+      scale=(1,scene.mannequin_foot_length/0.1,1)
+    )
+
+
+    # scene = context.scene
     vertsData = [
-      (0,0,0),
-      (0,0,scene.mannequin_height),
-      (0,0,scene.mannequin_torso_length + scene.mannequin_inseam),
-      (0,0,scene.mannequin_inseam),
-      (scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),
-      (-scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),
-      (-scene.mannequin_shoulder_width/2-scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),
-      (scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),
+      (0,0,0),  # 足
+      (0,0,scene.mannequin_height), # 頭頂部
+      (0,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 首下
+      (0,0,scene.mannequin_inseam), # 股下
+      (scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 肩
+      (-scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 肩
+      (-scene.mannequin_shoulder_width/2-scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 手首
+      (scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 手首
     ]
-    # edgesData = [(0,1),(1,2),(2,0)]
-    # facesData = [(0,1,2)]
-    # メッシュ生成
+    edgesData = []
+    facesData = []
+    # vertsData,edgesData,facesData = self.plot_test()
+    # # メッシュ生成
     mesh = bpy.data.meshes.new('Mannequin')
-    mesh.from_pydata(vertsData,[],[])
+    mesh.from_pydata(vertsData,edgesData,facesData)
     
     mesh.update()
 
@@ -46,6 +72,14 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     
     return {'FINISHED'}
 
+  # def plot_test(self):
+  #   vertsData = []
+  #   edgesData = []
+  #   facesData = []
+  #   for i in range(0,121):
+  #     vertsData.append((i*math.cos(2*math.pi*i/24),i*math.sin(2*math.pi*i/24),20*math.sin(2*math.pi*i/(30))))
+  #     if i < 120:edgesData.append((i,i+1))
+  #   return (vertsData,edgesData,facesData)
 
 class CREATEMANNEQUIN_PT_CreateMannequinObject(bpy.types.Panel):
 
