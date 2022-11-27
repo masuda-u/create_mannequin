@@ -20,12 +20,14 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
       depth=scene.mannequin_head_height,
       location=(0,0,scene.mannequin_height-scene.mannequin_head_height/2)
     )
+    context.object.name = 'mannequin_part'
     # 胴体
     bpy.ops.mesh.primitive_cylinder_add(
       radius=scene.mannequin_bust/(2*math.pi),
       depth=scene.mannequin_torso_length,
       location=(0,0,scene.mannequin_inseam + scene.mannequin_torso_length/2)
     )
+    context.object.name = 'mannequin_part'
     # 腕
     bpy.ops.mesh.primitive_cylinder_add(
       radius=scene.mannequin_thigh_circumference/(2*math.pi),
@@ -33,42 +35,55 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
       location=(scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length/2,0,scene.mannequin_torso_length + scene.mannequin_inseam - scene.mannequin_thigh_circumference/(2*math.pi)),
       rotation=(0,math.pi/2,0)
     )
+    context.object.name = 'mannequin_part'
     # 脚
     bpy.ops.mesh.primitive_cylinder_add(
       radius=scene.mannequin_thigh_circumference/(2*math.pi),
       depth=scene.mannequin_inseam,
       location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),0,scene.mannequin_inseam/2)
     )
+    context.object.name = 'mannequin_part'
     # 足
     bpy.ops.mesh.primitive_cube_add(
       size=0.1,
       location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),-scene.mannequin_foot_length/2,0.1/2),
       scale=(1,scene.mannequin_foot_length/0.1,1)
     )
+    context.object.name = 'mannequin_part'
+    # オブジェクトを統合する
+    for obj in bpy.data.objects:
+      print(obj.name)
+      print(obj.name.startswith('mannequin_part'))
+      if obj.name.startswith('mannequin_part'):
+        obj.select_set(True)
+      else:
+        obj.select_set(False)
+    bpy.ops.object.join()
 
 
-    # scene = context.scene
-    vertsData = [
-      (0,0,0),  # 足
-      (0,0,scene.mannequin_height), # 頭頂部
-      (0,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 首下
-      (0,0,scene.mannequin_inseam), # 股下
-      (scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 肩
-      (-scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 肩
-      (-scene.mannequin_shoulder_width/2-scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 手首
-      (scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 手首
-    ]
-    edgesData = []
-    facesData = []
-    # vertsData,edgesData,facesData = self.plot_test()
-    # # メッシュ生成
-    mesh = bpy.data.meshes.new('Mannequin')
-    mesh.from_pydata(vertsData,edgesData,facesData)
+
+
+    # vertsData = [
+    #   (0,0,0),  # 足
+    #   (0,0,scene.mannequin_height), # 頭頂部
+    #   (0,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 首下
+    #   (0,0,scene.mannequin_inseam), # 股下
+    #   (scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 肩
+    #   (-scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 肩
+    #   (-scene.mannequin_shoulder_width/2-scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 手首
+    #   (scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 手首
+    # ]
+    # edgesData = []
+    # facesData = []
+    # # vertsData,edgesData,facesData = self.plot_test()
+    # # # メッシュ生成
+    # mesh = bpy.data.meshes.new('Mannequin')
+    # mesh.from_pydata(vertsData,edgesData,facesData)
     
-    mesh.update()
+    # mesh.update()
 
-    # オブジェクト生成
-    object_utils.object_data_add(context,mesh,operator=None)
+    # # オブジェクト生成
+    # object_utils.object_data_add(context,mesh,operator=None)
     
     return {'FINISHED'}
 
