@@ -94,7 +94,7 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     """
     ヒップ周からヒップ横幅(x軸方向)を計算する
     """
-    return 0.28534994*hip+67.17028451
+    return 0.28534994*hip+0.06717028451
 
   # def plot_test(self):
   #   vertsData = []
