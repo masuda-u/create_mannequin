@@ -58,9 +58,13 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
       rotation=(0,math.pi/2,0)
     )
     mannequin_part_objects.append(context.object)
-    mod = context.object.modifiers.new('MyMirror','MIRROR')
+    mod = context.object.modifiers.new(f'{context.object.name}_MyMirror','MIRROR')
     mod.use_axis[0] = True
     mod.mirror_object = mirror_object
+    # ミラーモディファイヤを適用
+    for mod in context.object.modifiers:
+        if mod.type=="MIRROR":
+            bpy.ops.object.modifier_apply (modifier=mod.name)
     # 脚
     bpy.ops.mesh.primitive_cylinder_add(
       radius=thigh_circumference/(2*math.pi),
@@ -68,9 +72,13 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
       location=(hip_width/2-thigh_circumference/(2*math.pi),0,inseam_height/2)
     )
     mannequin_part_objects.append(context.object)
-    mod = context.object.modifiers.new('MyMirror','MIRROR')
+    mod = context.object.modifiers.new(f'{context.object.name}_MyMirror','MIRROR')
     mod.use_axis[0] = True
     mod.mirror_object = mirror_object
+    # ミラーモディファイヤを適用
+    for mod in context.object.modifiers:
+        if mod.type=="MIRROR":
+            bpy.ops.object.modifier_apply (modifier=mod.name)
     # 足
     bpy.ops.mesh.primitive_cube_add(
       size=0.1,
@@ -78,14 +86,18 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
       scale=(1,foot_length/0.1,1)
     )
     mannequin_part_objects.append(context.object)
-    mod = context.object.modifiers.new('MyMirror','MIRROR')
+    mod = context.object.modifiers.new(f'{context.object.name}_MyMirror','MIRROR')
     mod.use_axis[0] = True
     mod.mirror_object = mirror_object
-    # # オブジェクトを統合する
-    # [obj.select_set(False) for obj in bpy.data.objects]
-    # [obj.select_set(True) for obj in mannequin_part_objects]
-    # bpy.ops.object.join()
-    # context.object.name = 'mannequin'
+    # ミラーモディファイヤを適用
+    for mod in context.object.modifiers:
+        if mod.type=="MIRROR":
+            bpy.ops.object.modifier_apply (modifier=mod.name)
+    # オブジェクトを統合する
+    [obj.select_set(False) for obj in bpy.data.objects]
+    [obj.select_set(True) for obj in mannequin_part_objects]
+    bpy.ops.object.join()
+    context.object.name = 'mannequin'
 
     return {'FINISHED'}
 
