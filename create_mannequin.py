@@ -16,94 +16,73 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
   # メニューを実行したときに呼ばれる関数
   def execute(self, context):
     scene = context.scene
-    # 頭部
-    bpy.ops.mesh.primitive_cylinder_add(
-      radius=scene.mannequin_head_circumference/(2*math.pi),
-      depth=scene.mannequin_head_height,
-      location=(0,0,scene.mannequin_height-scene.mannequin_head_height/2)
-    )
-    context.object.name = 'mannequin_part'
-    # 胴体
-    bpy.ops.mesh.primitive_cylinder_add(
-      radius=scene.mannequin_bust/(2*math.pi),
-      depth=scene.mannequin_torso_length,
-      location=(0,0,scene.mannequin_inseam + scene.mannequin_torso_length/2)
-    )
-    context.object.name = 'mannequin_part'
-    # 腕
-    bpy.ops.mesh.primitive_cylinder_add(
-      radius=scene.mannequin_thigh_circumference/(2*math.pi),
-      depth=scene.mannequin_sleeve_length,
-      location=(scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length/2,0,scene.mannequin_torso_length + scene.mannequin_inseam - scene.mannequin_thigh_circumference/(2*math.pi)),
-      rotation=(0,math.pi/2,0)
-    )
-    context.object.name = 'mannequin_part'
-    # 脚
-    bpy.ops.mesh.primitive_cylinder_add(
-      radius=scene.mannequin_thigh_circumference/(2*math.pi),
-      depth=scene.mannequin_inseam,
-      location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),0,scene.mannequin_inseam/2)
-    )
-    context.object.name = 'mannequin_part'
-    # 足
-    bpy.ops.mesh.primitive_cube_add(
-      size=0.1,
-      location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),-scene.mannequin_foot_length/2,0.1/2),
-      scale=(1,scene.mannequin_foot_length/0.1,1)
-    )
-    context.object.name = 'mannequin_part'
-    # オブジェクトを統合する
-    for obj in bpy.data.objects:
-      if obj.name.startswith('mannequin_part'):
-        obj.select_set(True)
-      else:
-        obj.select_set(False)
-    bpy.ops.object.join()
-    context.object.name = 'mannequin'
+    # パラメータ計算
+    height = scene.mannequin_height # 身長
+    shoulder_height = 0.91149783*height-106.5205432 # 肩高さ
+    bust_height = 0.77281065*height-42.32847491 # バスト高さ
+    waist_height = 0.49162933*height+121.17322816 # ウエスト高さ
+    hip_height = 0.54274348*height-84.138702  # ヒップ高さ
+    inseam_height = scene.mannequin_inseam_height # 股下高さ
+    knee_height = 0.57452881*inseam_height+12.51392592  # ひざ高さ
+    shoulder_width = scene.mannequin_shoulder_width # 肩幅
+    sleeve_length = scene.mannequin_sleeve_length # 袖丈
+    foot_length = scene.mannequin_foot_length # 足長さ
+    bust = scene.mannequin_bust # バスト周
+    waist = scene.mannequin_waist # ウエスト周
+    hip = scene.mannequin_hip # ヒップ周
+    upper_arm_circumference = scene.mannequin_upper_arm_circumference # 上腕周
+    thigh_circumference = scene.mannequin_thigh_circumference # 太もも周
+    print(thigh_circumference)
+    # # 頭部
+    # bpy.ops.mesh.primitive_cylinder_add(
+    #   radius=scene.mannequin_head_circumference/(2*math.pi),
+    #   depth=scene.mannequin_head_height,
+    #   location=(0,0,scene.mannequin_height-scene.mannequin_head_height/2)
+    # )
+    # context.object.name = 'mannequin_part'
+    # # 胴体
+    # bpy.ops.mesh.primitive_cylinder_add(
+    #   radius=scene.mannequin_bust/(2*math.pi),
+    #   depth=scene.mannequin_torso_length,
+    #   location=(0,0,scene.mannequin_inseam + scene.mannequin_torso_length/2)
+    # )
+    # context.object.name = 'mannequin_part'
+    # # 腕
+    # bpy.ops.mesh.primitive_cylinder_add(
+    #   radius=scene.mannequin_thigh_circumference/(2*math.pi),
+    #   depth=scene.mannequin_sleeve_length,
+    #   location=(scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length/2,0,scene.mannequin_torso_length + scene.mannequin_inseam - scene.mannequin_thigh_circumference/(2*math.pi)),
+    #   rotation=(0,math.pi/2,0)
+    # )
+    # context.object.name = 'mannequin_part'
+    # # 脚
+    # bpy.ops.mesh.primitive_cylinder_add(
+    #   radius=scene.mannequin_thigh_circumference/(2*math.pi),
+    #   depth=scene.mannequin_inseam,
+    #   location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),0,scene.mannequin_inseam/2)
+    # )
+    # context.object.name = 'mannequin_part'
+    # # 足
+    # bpy.ops.mesh.primitive_cube_add(
+    #   size=0.1,
+    #   location=(scene.mannequin_hip/(2*math.pi)-scene.mannequin_thigh_circumference/(2*math.pi),-scene.mannequin_foot_length/2,0.1/2),
+    #   scale=(1,scene.mannequin_foot_length/0.1,1)
+    # )
+    # context.object.name = 'mannequin_part'
+    # # オブジェクトを統合する
+    # for obj in bpy.data.objects:
+    #   if obj.name.startswith('mannequin_part'):
+    #     obj.select_set(True)
+    #   else:
+    #     obj.select_set(False)
+    # bpy.ops.object.join()
+    # context.object.name = 'mannequin'
 
-    # scipy test
-    y = lambda x: np.sin(x)**2
-    integ = integrate.quad(y, 0, np.pi)
-    print(integ)
 
-    # vertsData = [
-    #   (0,0,0),  # 足
-    #   (0,0,scene.mannequin_height), # 頭頂部
-    #   (0,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 首下
-    #   (0,0,scene.mannequin_inseam), # 股下
-    #   (scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 肩
-    #   (-scene.mannequin_shoulder_width/2,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 肩
-    #   (-scene.mannequin_shoulder_width/2-scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam),  # 手首
-    #   (scene.mannequin_shoulder_width/2+scene.mannequin_sleeve_length,0,scene.mannequin_torso_length + scene.mannequin_inseam), # 手首
-    # ]
-    # edgesData = []
-    # facesData = []
-    # # vertsData,edgesData,facesData = self.plot_test()
-    # # # メッシュ生成
-    # mesh = bpy.data.meshes.new('Mannequin')
-    # mesh.from_pydata(vertsData,edgesData,facesData)
-    
-    # mesh.update()
 
-    # # オブジェクト生成
-    # object_utils.object_data_add(context,mesh,operator=None)
     
     return {'FINISHED'}
 
-  def calc_hip_width(self,hip):
-    """
-    ヒップ周からヒップ横幅(x軸方向)を計算する
-    """
-    return 0.28534994*hip+0.06717028451
-
-  # def plot_test(self):
-  #   vertsData = []
-  #   edgesData = []
-  #   facesData = []
-  #   for i in range(0,121):
-  #     vertsData.append((i*math.cos(2*math.pi*i/24),i*math.sin(2*math.pi*i/24),20*math.sin(2*math.pi*i/(30))))
-  #     if i < 120:edgesData.append((i,i+1))
-  #   return (vertsData,edgesData,facesData)
 
 class CREATEMANNEQUIN_PT_CreateMannequinObject(bpy.types.Panel):
 
@@ -121,14 +100,10 @@ class CREATEMANNEQUIN_PT_CreateMannequinObject(bpy.types.Panel):
     layout.prop(scene,'mannequin_bust')
     layout.prop(scene,'mannequin_waist')
     layout.prop(scene,'mannequin_hip')
-    layout.prop(scene,'mannequin_torso_length')
     layout.prop(scene,'mannequin_upper_arm_circumference')
-    layout.prop(scene,'mannequin_head_height')
-    layout.prop(scene,'mannequin_head_circumference')
     layout.prop(scene,'mannequin_shoulder_width')
-    layout.prop(scene,'mannequin_back_shoulder_width')
     layout.prop(scene,'mannequin_sleeve_length')
-    layout.prop(scene,'mannequin_inseam')
+    layout.prop(scene,'mannequin_inseam_height')
     layout.prop(scene,'mannequin_thigh_circumference')
     layout.prop(scene,'mannequin_foot_length')
     layout.separator()
@@ -162,40 +137,16 @@ def init_props():
     default=.91,
     min=0
   )
-  scene.mannequin_torso_length = FloatProperty(
-    name='torso_length',
-    description='',
-    default=.55,
-    min=0
-  )
   scene.mannequin_upper_arm_circumference = FloatProperty(
     name='upper arm circumference',
     description='',
     default=.26,
     min=0
   )
-  scene.mannequin_head_height = FloatProperty(
-    name='head height',
-    description='',
-    default=.24,
-    min=0
-  )
-  scene.mannequin_head_circumference = FloatProperty(
-    name='head circumference',
-    description='',
-    default=.60,
-    min=0
-  )  
   scene.mannequin_shoulder_width = FloatProperty(
     name='shoulder width',
     description='',
     default=.40,
-    min=0
-  )
-  scene.mannequin_back_shoulder_width = FloatProperty(
-    name='back shoulder width',
-    description='',
-    default=.43,
     min=0
   )
   scene.mannequin_sleeve_length = FloatProperty(
@@ -204,8 +155,8 @@ def init_props():
     default=.60,
     min=0
   )
-  scene.mannequin_inseam = FloatProperty(
-    name='inseam',
+  scene.mannequin_inseam_height = FloatProperty(
+    name='inseam_height',
     description='',
     default=.77,
     min=0
