@@ -49,6 +49,44 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
       depth=shoulder_height-inseam_height,
       location=(0,0,inseam_height+(shoulder_height-inseam_height)/2)
     )
+    # ループカット
+    bpy.ops.object.editmode_toggle()
+    override = {}
+    for area in bpy.context.window.screen.areas:
+      if area.type == 'VIEW_3D':
+        view_3d = area.spaces[0]
+        for region in area.regions:
+          if region.type == 'WINDOW':
+            override = {
+              'scene':bpy.context.scene,
+              'region':region,
+              'area':area,
+              'space':view_3d
+            }
+            break
+    bpy.ops.mesh.loopcut_slide(
+      override,
+      MESH_OT_loopcut = {
+          "number_cuts"           : 2,
+          "smoothness"            : 0,     
+          "falloff"               : 'SMOOTH',  # Was 'INVERSE_SQUARE' that does not exist
+          "object_index"          : 0,
+          "edge_index"            : 2,
+          "mesh_select_mode_init" : (True, False, False)
+      },
+      TRANSFORM_OT_edge_slide = {
+          "value"           : 0,
+          "mirror"          : False, 
+          "snap"            : False,
+          "snap_target"     : 'CLOSEST',
+          "snap_point"      : (0, 0, 0),
+          "snap_align"      : False,
+          "snap_normal"     : (0, 0, 0),
+          "correct_uv"      : False,
+          "release_confirm" : False
+      }
+    )
+    bpy.ops.object.editmode_toggle()
     mannequin_part_objects.append(context.object)
     # 腕
     bpy.ops.mesh.primitive_cylinder_add(
