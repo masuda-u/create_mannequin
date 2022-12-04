@@ -23,6 +23,8 @@ if 'bpy' in locals():
 else:
   from . import create_mannequin
 
+import bpy
+
 # アドオン有効化時の処理
 def register():
   create_mannequin.register()
