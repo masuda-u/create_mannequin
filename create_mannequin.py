@@ -86,6 +86,7 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
           "release_confirm" : False
       }
     )
+    bpy.ops.transform.resize(override,value=(.5,.5,.5))
     bpy.ops.object.editmode_toggle()
     mannequin_part_objects.append(context.object)
     # 腕
