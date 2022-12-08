@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import *
 from bpy_extras import object_utils
+import bmesh,mathutils
 
 import math
 import numpy as np
@@ -44,51 +45,47 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     mannequin_part_objects.append(context.object)
     mirror_object = context.object  # 頭部をミラーオブジェクトとする
     # 胴体
-    bpy.ops.mesh.primitive_cylinder_add(
-      radius=bust/(2*math.pi),
-      depth=shoulder_height-inseam_height,
-      location=(0,0,inseam_height+(shoulder_height-inseam_height)/2)
+    # 空のメッシュとオブジェクト生成
+    me = bpy.data.meshes.new('mesh')
+    torso_obj = bpy.data.objects.new('mannequin_part',me)
+    # オブジェクト追加
+    scene = context.scene
+    scene.collection.objects.link(torso_obj)
+    # Bmesh生成
+    bm = bmesh.new()
+    # Bmesh編集
+    ret = bmesh.ops.create_circle(
+      bm,
+      cap_ends=False,
+      radius=.5, # 直径１とする
+      segments=32,
+      matrix=mathutils.Matrix.Translation((0,0,shoulder_height))
     )
-    # ループカット
-    bpy.ops.object.editmode_toggle()
-    override = {}
-    for area in bpy.context.window.screen.areas:
-      if area.type == 'VIEW_3D':
-        view_3d = area.spaces[0]
-        for region in area.regions:
-          if region.type == 'WINDOW':
-            override = {
-              'scene':bpy.context.scene,
-              'region':region,
-              'area':area,
-              'space':view_3d
-            }
-            break
-    bpy.ops.mesh.loopcut_slide(
-      override,
-      MESH_OT_loopcut = {
-          "number_cuts"           : 2,
-          "smoothness"            : 0,     
-          "falloff"               : 'SMOOTH',  # Was 'INVERSE_SQUARE' that does not exist
-          "object_index"          : 0,
-          "edge_index"            : 2,
-          "mesh_select_mode_init" : (True, False, False)
-      },
-      TRANSFORM_OT_edge_slide = {
-          "value"           : 0,
-          "mirror"          : False, 
-          "snap"            : False,
-          "snap_target"     : 'CLOSEST',
-          "snap_point"      : (0, 0, 0),
-          "snap_align"      : False,
-          "snap_normal"     : (0, 0, 0),
-          "correct_uv"      : False,
-          "release_confirm" : False
-      }
-    )
-    bpy.ops.transform.resize(override,value=(.5,.5,.5))
-    bpy.ops.object.editmode_toggle()
-    mannequin_part_objects.append(context.object)
+    ret = bm.faces.new(ret['verts'])  # 肩
+    shoulder_verts = ret.verts
+    ret = bmesh.ops.extrude_face_region(bm,geom=[ret])  # バスト
+    bust_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(0,0,bust_height-shoulder_height),verts=bust_verts)
+    ret = [f for f in ret['geom'] if isinstance(f,bmesh.types.BMFace)]
+    ret = bmesh.ops.extrude_face_region(bm,geom=ret)  # ウエスト
+    waist_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(0,0,waist_height-bust_height),verts=waist_verts)
+    ret = [f for f in ret['geom'] if isinstance(f,bmesh.types.BMFace)]
+    ret = bmesh.ops.extrude_face_region(bm,geom=ret)  # ヒップ
+    hip_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(0,0,hip_height-waist_height),verts=hip_verts)
+    ret = [f for f in ret['geom'] if isinstance(f,bmesh.types.BMFace)]
+    ret = bmesh.ops.extrude_face_region(bm,geom=ret)  # 股下
+    inseam_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(0,0,inseam_height-hip_height),verts=inseam_verts)
+    bmesh.ops.scale(bm,verts=shoulder_verts,vec=(.5,.5,1))
+    bmesh.ops.scale(bm,verts=bust_verts,vec=(.4,.4,1))
+    bmesh.ops.scale(bm,verts=waist_verts,vec=(.3,.3,1))
+    bmesh.ops.scale(bm,verts=hip_verts,vec=(.2,.2,1))
+    bmesh.ops.scale(bm,verts=inseam_verts,vec=(.1,.1,1))
+    bm.to_mesh(me)
+    bm.free()
+    mannequin_part_objects.append(torso_obj)
     # 腕
     bpy.ops.mesh.primitive_cylinder_add(
       radius=upper_arm_circumference/(2*math.pi),
