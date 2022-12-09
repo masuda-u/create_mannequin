@@ -14,14 +14,18 @@ bl_info = {
 
 import os
 import sys
-if not os.path.join(os.path.dirname(__file__),'libs') in sys.path:
+if not os.path.join(os.path.dirname(__file__),'.') in sys.path:
+  sys.path.append(os.path.join(os.path.dirname(__file__),'.'))
   sys.path.append(os.path.join(os.path.dirname(__file__),'libs'))
+
 
 if 'bpy' in locals():
   import importlib
   importlib.reload(create_mannequin)
+  importlib.reload(utils)
 else:
   from . import create_mannequin
+  from . import utils
 
 import bpy
 

@@ -5,7 +5,6 @@ import bmesh,mathutils
 
 import math
 import numpy as np
-from .libs.scipy import integrate
 
 class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
 
