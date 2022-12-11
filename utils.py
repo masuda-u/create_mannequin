@@ -4,7 +4,7 @@ import numpy as np
 def get_ellipse_another_radius(L,r):
   """
   楕円の周長と半径rから残されたほうの半径を求める
-  L:周の長さ
+  L:楕円の周長
   r:長半径または短半径
   """
   k = 0.9 # 離心率初期値
