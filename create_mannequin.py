@@ -20,27 +20,31 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     # パラメータ計算
     height = scene.mannequin_height # 身長
     shoulder_height = 0.91149783*height-0.1065205432 # 肩高さ
-    bust_height = 0.77281065*height-0.04232847491 # バスト高さ
-    waist_height = 0.49162933*height+0.12117322816 # ウエスト高さ
-    hip_height = 0.54274348*height-0.084138702  # ヒップ高さ
-    inseam_height = scene.mannequin_inseam_height # 股下高さ
-    knee_height = 0.57452881*inseam_height+0.01251392592  # ひざ高さ
     shoulder_width = scene.mannequin_shoulder_width # 肩幅
     sleeve_length = scene.mannequin_sleeve_length # 袖丈
-    foot_length = scene.mannequin_foot_length # 足長さ
+    upper_arm_circumference = scene.mannequin_upper_arm_circumference # 上腕周
+    bust_height = 0.77281065*height-0.04232847491 # バスト高さ
     bust = scene.mannequin_bust # バスト周
     bust_width = 0.30120742*bust+0.02519265802  # バスト幅
     bust_depth = 2*get_ellipse_another_radius(bust,bust_width/2)  # バスト深さ
-    # bust_depth = 0.2730835*bust-0.02482191931 # バスト深さ
-    # bust_width = 2*get_ellipse_another_radius(bust,bust_depth/2)  # バスト幅
+    waist_height = 0.49162933*height+0.12117322816 # ウエスト高さ
     waist = scene.mannequin_waist # ウエスト周
     waist_width = 0.31858435*waist+0.03487671899  # ウエスト幅
     waist_depth = 2*get_ellipse_another_radius(waist,waist_width/2) # ウエスト深さ
+    hip_height = 0.54274348*height-0.084138702  # ヒップ高さ
     hip = scene.mannequin_hip # ヒップ周
     hip_width = 0.28534994*hip+0.06717028451  # ヒップ幅
     hip_depth = 2*get_ellipse_another_radius(hip,hip_width/2) # ヒップ深さ
-    upper_arm_circumference = scene.mannequin_upper_arm_circumference # 上腕周
+    inseam_height = scene.mannequin_inseam_height # 股下高さ
     thigh_circumference = scene.mannequin_thigh_circumference # 太もも周
+    thigh_width = 0.28402614*thigh_circumference+0.01431139685  # 太もも幅
+    thigh_depth = 2*get_ellipse_another_radius(thigh_circumference,thigh_width/2) # 太もも深さ
+    knee_height = 0.57452881*inseam_height+0.01251392592  # ひざ高さ
+    knee_width = 0.16185342*thigh_circumference+0.02330633407 # ひざ幅
+    knee_depth = 0.12118377*thigh_circumference+0.05265503627 # ひざ深さ
+    min_leg_width = 1.49153530e-02*height+0.004015048447414766  # 足首幅
+    min_leg_depth = 0.0339574*height+0.01877687228  # 足首深さ
+    foot_length = scene.mannequin_foot_length # 足長さ
 
     mannequin_part_objects = []
     # 頭部
@@ -53,8 +57,8 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     mirror_object = context.object  # 頭部をミラーオブジェクトとする
     # 胴体
     # 空のメッシュとオブジェクト生成
-    me = bpy.data.meshes.new('mesh')
-    torso_obj = bpy.data.objects.new('mannequin_part',me)
+    me = bpy.data.meshes.new('torso')
+    torso_obj = bpy.data.objects.new('mannequin_torso',me)
     # オブジェクト追加
     scene = context.scene
     scene.collection.objects.link(torso_obj)
@@ -63,7 +67,6 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     # Bmesh編集
     ret = bmesh.ops.create_circle(
       bm,
-      cap_ends=False,
       radius=.5, # 直径１とする
       segments=32,
       matrix=mathutils.Matrix.Translation((0,0,shoulder_height))
@@ -105,15 +108,42 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     mod.use_axis[0] = True
     mod.mirror_object = mirror_object
     # 脚
-    bpy.ops.mesh.primitive_cylinder_add(
-      radius=thigh_circumference/(2*math.pi),
-      depth=inseam_height,
-      location=(hip_width/2-thigh_circumference/(2*math.pi),0,inseam_height/2)
+    me = bpy.data.meshes.new('leg')
+    leg_obj = bpy.data.objects.new('mannequin_leg',me)
+    scene = context.scene
+    scene.collection.objects.link(leg_obj)
+    bm = bmesh.new()
+    ret = bmesh.ops.create_circle(
+      bm,
+      radius=.5, # 直径１とする
+      segments=12,
+      matrix=mathutils.Matrix.Translation((hip_width/2-thigh_circumference/(2*math.pi),0,inseam_height))
     )
-    mannequin_part_objects.append(context.object)
-    mod = context.object.modifiers.new('MyMirror','MIRROR')
-    mod.use_axis[0] = True
-    mod.mirror_object = mirror_object
+    ret = bm.faces.new(ret['verts'])  # 股関節
+    inseam_verts = ret.verts
+    ret = bmesh.ops.extrude_face_region(bm,geom=[ret])  # 膝
+    knee_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(0,0,knee_height-inseam_height),verts=knee_verts)
+    ret = [f for f in ret['geom'] if isinstance(f,bmesh.types.BMFace)]
+    ret = bmesh.ops.extrude_face_region(bm,geom=ret)  # 足
+    foot_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(0,0,-knee_height),verts=foot_verts)
+    T = mathutils.Matrix.Translation((-(hip_width/2-thigh_circumference/(2*math.pi)),0,0))
+    bmesh.ops.scale(bm,verts=inseam_verts,vec=(thigh_width,thigh_depth,1),space=T)
+    bmesh.ops.scale(bm,verts=knee_verts,vec=(knee_width,knee_depth,1),space=T)
+    bmesh.ops.scale(bm,verts=foot_verts,vec=(min_leg_width,min_leg_depth,1),space=T)
+    bm.to_mesh(me)
+    bm.free()
+    mannequin_part_objects.append(leg_obj)
+    # bpy.ops.mesh.primitive_cylinder_add(
+    #   radius=thigh_circumference/(2*math.pi),
+    #   depth=inseam_height,
+    #   location=(hip_width/2-thigh_circumference/(2*math.pi),0,inseam_height/2)
+    # )
+    # mannequin_part_objects.append(context.object)
+    # mod = context.object.modifiers.new('MyMirror','MIRROR')
+    # mod.use_axis[0] = True
+    # mod.mirror_object = mirror_object
     # 足
     bpy.ops.mesh.primitive_cube_add(
       size=0.1,
