@@ -132,18 +132,10 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     bmesh.ops.scale(bm,verts=inseam_verts,vec=(thigh_width,thigh_depth,1),space=T)
     bmesh.ops.scale(bm,verts=knee_verts,vec=(knee_width,knee_depth,1),space=T)
     bmesh.ops.scale(bm,verts=foot_verts,vec=(min_leg_width,min_leg_depth,1),space=T)
+    bmesh.ops.mirror(bm,geom=bm.faces,axis='X')
     bm.to_mesh(me)
     bm.free()
     mannequin_part_objects.append(leg_obj)
-    # bpy.ops.mesh.primitive_cylinder_add(
-    #   radius=thigh_circumference/(2*math.pi),
-    #   depth=inseam_height,
-    #   location=(hip_width/2-thigh_circumference/(2*math.pi),0,inseam_height/2)
-    # )
-    # mannequin_part_objects.append(context.object)
-    # mod = context.object.modifiers.new('MyMirror','MIRROR')
-    # mod.use_axis[0] = True
-    # mod.mirror_object = mirror_object
     # 足
     bpy.ops.mesh.primitive_cube_add(
       size=0.1,
