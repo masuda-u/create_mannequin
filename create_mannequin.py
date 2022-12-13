@@ -5,6 +5,7 @@ import bmesh,mathutils
 
 import math
 import numpy as np
+from .utils import get_ellipse_another_radius
 
 class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
 
@@ -28,9 +29,16 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     sleeve_length = scene.mannequin_sleeve_length # 袖丈
     foot_length = scene.mannequin_foot_length # 足長さ
     bust = scene.mannequin_bust # バスト周
+    bust_width = 0.30120742*bust+0.02519265802  # バスト幅
+    bust_depth = 2*get_ellipse_another_radius(bust,bust_width/2)  # バスト深さ
+    # bust_depth = 0.2730835*bust-0.02482191931 # バスト深さ
+    # bust_width = 2*get_ellipse_another_radius(bust,bust_depth/2)  # バスト幅
     waist = scene.mannequin_waist # ウエスト周
+    waist_width = 0.31858435*waist+0.03487671899  # ウエスト幅
+    waist_depth = 2*get_ellipse_another_radius(waist,waist_width/2) # ウエスト深さ
     hip = scene.mannequin_hip # ヒップ周
-    hip_width = 0.28534994*hip+0.06717028451
+    hip_width = 0.28534994*hip+0.06717028451  # ヒップ幅
+    hip_depth = 2*get_ellipse_another_radius(hip,hip_width/2) # ヒップ深さ
     upper_arm_circumference = scene.mannequin_upper_arm_circumference # 上腕周
     thigh_circumference = scene.mannequin_thigh_circumference # 太もも周
 
@@ -77,11 +85,11 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     ret = bmesh.ops.extrude_face_region(bm,geom=ret)  # 股下
     inseam_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
     bmesh.ops.translate(bm,vec=(0,0,inseam_height-hip_height),verts=inseam_verts)
-    bmesh.ops.scale(bm,verts=shoulder_verts,vec=(.5,.5,1))
-    bmesh.ops.scale(bm,verts=bust_verts,vec=(.4,.4,1))
-    bmesh.ops.scale(bm,verts=waist_verts,vec=(.3,.3,1))
-    bmesh.ops.scale(bm,verts=hip_verts,vec=(.2,.2,1))
-    bmesh.ops.scale(bm,verts=inseam_verts,vec=(.1,.1,1))
+    bmesh.ops.scale(bm,verts=shoulder_verts,vec=(shoulder_width,.6/math.pi,1))
+    bmesh.ops.scale(bm,verts=bust_verts,vec=(bust_width,bust_depth,1))
+    bmesh.ops.scale(bm,verts=waist_verts,vec=(waist_width,waist_depth,1))
+    bmesh.ops.scale(bm,verts=hip_verts,vec=(hip_width,hip_depth,1))
+    bmesh.ops.scale(bm,verts=inseam_verts,vec=(hip_width,hip_depth,1))
     bm.to_mesh(me)
     bm.free()
     mannequin_part_objects.append(torso_obj)
