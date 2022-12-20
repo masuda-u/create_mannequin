@@ -22,6 +22,7 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     shoulder_height = 0.91149783*height-0.1065205432 # 肩高さ
     shoulder_width = scene.mannequin_shoulder_width # 肩幅
     sleeve_length = scene.mannequin_sleeve_length # 袖丈
+    shoulder_to_elbow = 0.56998292*sleeve_length+0.00114481871  # 肘丈
     upper_arm_circumference = scene.mannequin_upper_arm_circumference # 上腕周
     bust_height = 0.77281065*height-0.04232847491 # バスト高さ
     bust = scene.mannequin_bust # バスト周
@@ -97,16 +98,34 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     bm.free()
     mannequin_part_objects.append(torso_obj)
     # 腕
-    bpy.ops.mesh.primitive_cylinder_add(
-      radius=upper_arm_circumference/(2*math.pi),
-      depth=sleeve_length,
-      location=((shoulder_width+sleeve_length)/2,0,shoulder_height - upper_arm_circumference/(2*math.pi)),
-      rotation=(0,math.pi/2,0)
+    me = bpy.data.meshes.new('arm')
+    arm_obj = bpy.data.objects.new('mannequin_arm',me)
+    scene = context.scene
+    scene.collection.objects.link(arm_obj)
+    bm = bmesh.new()
+    ret = bmesh.ops.create_circle(
+      bm,
+      radius=.5, # 直径１とする
+      segments=12,
+      matrix=mathutils.Matrix.Translation((shoulder_width/2,0,shoulder_height-upper_arm_circumference/(2*math.pi))) @ mathutils.Matrix.Rotation(math.radians(90.0), 4, 'Y')
     )
-    mannequin_part_objects.append(context.object)
-    mod = context.object.modifiers.new('MyMirror','MIRROR')
-    mod.use_axis[0] = True
-    mod.mirror_object = mirror_object
+    ret = bm.faces.new(ret['verts'])  # 肩関節
+    shoulder_verts = ret.verts
+    ret = bmesh.ops.extrude_face_region(bm,geom=[ret])  # ひじ
+    elbow_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(shoulder_to_elbow,0,0),verts=elbow_verts)
+    ret = [f for f in ret['geom'] if isinstance(f,bmesh.types.BMFace)]
+    ret = bmesh.ops.extrude_face_region(bm,geom=ret)  # 手首
+    wrist_verts = [v for v in ret['geom'] if isinstance(v,bmesh.types.BMVert)]
+    bmesh.ops.translate(bm,vec=(sleeve_length-shoulder_to_elbow,0,0),verts=wrist_verts)
+    T = mathutils.Matrix.Translation((-(shoulder_width/2),0,-(shoulder_height-upper_arm_circumference/(2*math.pi))))
+    bmesh.ops.scale(bm,verts=shoulder_verts,vec=(1,upper_arm_circumference/math.pi,upper_arm_circumference/math.pi),space=T)
+    bmesh.ops.scale(bm,verts=elbow_verts,vec=(1,upper_arm_circumference/math.pi,upper_arm_circumference/math.pi),space=T)
+    bmesh.ops.scale(bm,verts=wrist_verts,vec=(1,upper_arm_circumference/math.pi,upper_arm_circumference/math.pi),space=T)
+    bmesh.ops.mirror(bm,geom=bm.faces,axis='X')
+    bm.to_mesh(me)
+    bm.free()
+    mannequin_part_objects.append(arm_obj)
     # 脚
     me = bpy.data.meshes.new('leg')
     leg_obj = bpy.data.objects.new('mannequin_leg',me)
