@@ -48,6 +48,8 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     min_leg_width = 1.49153530e-02*height+0.004015048447414766  # 足首幅
     min_leg_depth = 0.0339574*height+0.01877687228  # 足首深さ
     foot_length = scene.mannequin_foot_length # 足長さ
+    foot_width = 10/27.5*foot_length  # 足幅
+    foot_thick = 8.5/27.5*foot_length # 足厚
 
     mannequin_part_objects = []
     # 頭部
@@ -158,10 +160,10 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     bm.free()
     mannequin_part_objects.append(leg_obj)
     # 足
-    bpy.ops.mesh.primitive_cube_add(
-      size=0.1,
-      location=(hip_width/2-thigh_circumference/(2*math.pi),-foot_length/2,0.05),
-      scale=(1,foot_length/0.1,1)
+    bpy.ops.mesh.primitive_uv_sphere_add(
+      radius=0.5, # 直径１とする
+      location=(hip_width/2-thigh_circumference/(2*math.pi),-(foot_length/4),foot_thick/2),
+      scale=(foot_width,foot_length,foot_thick)
     )
     mannequin_part_objects.append(context.object)
     mod = context.object.modifiers.new('MyMirror','MIRROR')
