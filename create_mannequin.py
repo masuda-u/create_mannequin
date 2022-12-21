@@ -24,6 +24,8 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     sleeve_length = scene.mannequin_sleeve_length # 袖丈
     shoulder_to_elbow = 0.56998292*sleeve_length+0.00114481871  # 肘丈
     upper_arm_circumference = scene.mannequin_upper_arm_circumference # 上腕周
+    elbow_circumference =  25.9/36.8*upper_arm_circumference
+    wrist_circumference = 18.1/36.8*upper_arm_circumference
     bust_height = 0.77281065*height-0.04232847491 # バスト高さ
     bust = scene.mannequin_bust # バスト周
     bust_width = 0.30120742*bust+0.02519265802  # バスト幅
@@ -120,8 +122,8 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     bmesh.ops.translate(bm,vec=(sleeve_length-shoulder_to_elbow,0,0),verts=wrist_verts)
     T = mathutils.Matrix.Translation((-(shoulder_width/2),0,-(shoulder_height-upper_arm_circumference/(2*math.pi))))
     bmesh.ops.scale(bm,verts=shoulder_verts,vec=(1,upper_arm_circumference/math.pi,upper_arm_circumference/math.pi),space=T)
-    bmesh.ops.scale(bm,verts=elbow_verts,vec=(1,upper_arm_circumference/math.pi,upper_arm_circumference/math.pi),space=T)
-    bmesh.ops.scale(bm,verts=wrist_verts,vec=(1,upper_arm_circumference/math.pi,upper_arm_circumference/math.pi),space=T)
+    bmesh.ops.scale(bm,verts=elbow_verts,vec=(1,elbow_circumference/math.pi,elbow_circumference/math.pi),space=T)
+    bmesh.ops.scale(bm,verts=wrist_verts,vec=(1,wrist_circumference/math.pi,wrist_circumference/math.pi),space=T)
     bmesh.ops.mirror(bm,geom=bm.faces,axis='X')
     bm.to_mesh(me)
     bm.free()
