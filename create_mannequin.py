@@ -24,8 +24,11 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     sleeve_length = scene.mannequin_sleeve_length # 袖丈
     shoulder_to_elbow = 0.56998292*sleeve_length+0.00114481871  # 肘丈
     upper_arm_circumference = scene.mannequin_upper_arm_circumference # 上腕周
-    elbow_circumference =  25.9/36.8*upper_arm_circumference
-    wrist_circumference = 18.1/36.8*upper_arm_circumference
+    elbow_circumference =  25.9/36.8*upper_arm_circumference  # ひじ周
+    wrist_circumference = 18.1/36.8*upper_arm_circumference # 手首周
+    hand_length = 19.5e-2  # 手の長さ
+    hand_width = 10e-2 # 手幅
+    hand_thick = 3.5e-2  # 手厚さ
     bust_height = 0.77281065*height-0.04232847491 # バスト高さ
     bust = scene.mannequin_bust # バスト周
     bust_width = 0.30120742*bust+0.02519265802  # バスト幅
@@ -130,6 +133,16 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
     bm.to_mesh(me)
     bm.free()
     mannequin_part_objects.append(arm_obj)
+    # 手
+    bpy.ops.mesh.primitive_uv_sphere_add(
+      radius=.5,  # 直径１とする
+      location=(shoulder_width/2+sleeve_length+hand_length/2-hand_length/10,0,shoulder_height-upper_arm_circumference/(2*math.pi)),
+      scale=(hand_length,hand_width,hand_thick)
+    )
+    mannequin_part_objects.append(context.object)
+    mod = context.object.modifiers.new('MyMirror','MIRROR')
+    mod.use_axis[0] = True
+    mod.mirror_object = mirror_object
     # 脚
     me = bpy.data.meshes.new('leg')
     leg_obj = bpy.data.objects.new('mannequin_leg',me)
