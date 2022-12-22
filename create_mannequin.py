@@ -1,10 +1,9 @@
 import bpy
 from bpy.props import *
-from bpy_extras import object_utils
 import bmesh,mathutils
+from bpy.app.translations import pgettext
 
 import math
-import numpy as np
 from .utils import get_ellipse_another_radius
 
 class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
@@ -199,15 +198,19 @@ class CREATEMANNEQUIN_OT_CreateMannequinObject(bpy.types.Operator):
 
 class CREATEMANNEQUIN_PT_CreateMannequinObject(bpy.types.Panel):
 
-  bl_label = 'Create Mannequin'
+  bl_label = pgettext('Create Mannequin')
   bl_space_type = 'VIEW_3D'
   bl_region_type = 'UI'
-  bl_category = 'Mannequin'
+  bl_category = pgettext('Mannequin')
   bl_context = 'objectmode'
 
   def draw(self,context):
     scene = context.scene
     layout = self.layout
+    # ラベル
+    row = layout.row(align=True)
+    row.alignment = 'RIGHT'
+    row.label(text=pgettext('Unit (m)'))
     # プロパティ追加
     layout.prop(scene,'mannequin_height')
     layout.prop(scene,'mannequin_bust')
@@ -221,67 +224,66 @@ class CREATEMANNEQUIN_PT_CreateMannequinObject(bpy.types.Panel):
     layout.prop(scene,'mannequin_foot_length')
     layout.separator()
     # 生成ボタンを追加
-    layout.operator(CREATEMANNEQUIN_OT_CreateMannequinObject.bl_idname,text='追加',icon='OUTLINER_OB_ARMATURE')
-
+    layout.operator(CREATEMANNEQUIN_OT_CreateMannequinObject.bl_idname,text=pgettext('Add'),icon='OUTLINER_OB_ARMATURE')
 
 def init_props():
   scene = bpy.types.Scene
   scene.mannequin_height = FloatProperty(
-    name='height',
+    name=pgettext('(L1) height'),
     description='',
     default=1.7,
     min=0
   )
   scene.mannequin_bust = FloatProperty(
-    name='bust',
+    name=pgettext('(C1) bust'),
     description='',
     default=.9,
     min=0
   )
   scene.mannequin_waist = FloatProperty(
-    name='waist',
+    name=pgettext('(C2) waist'),
     description='',
     default=.65,
     min=0
   )
   scene.mannequin_hip = FloatProperty(
-    name='hip',
+    name=pgettext('(C3) hip'),
     description='',
     default=.91,
     min=0
   )
   scene.mannequin_upper_arm_circumference = FloatProperty(
-    name='upper arm circumference',
+    name=pgettext('(C4) upper arm circumference'),
     description='',
     default=.26,
     min=0
   )
   scene.mannequin_shoulder_width = FloatProperty(
-    name='shoulder width',
+    name=pgettext('(L2) shoulder width'),
     description='',
     default=.40,
     min=0
   )
   scene.mannequin_sleeve_length = FloatProperty(
-    name='sleeve length',
+    name=pgettext('(L3) sleeve length'),
     description='',
     default=.60,
     min=0
   )
   scene.mannequin_inseam_height = FloatProperty(
-    name='inseam_height',
+    name=pgettext('(L4) inseam_height'),
     description='',
     default=.77,
     min=0
   )
   scene.mannequin_thigh_circumference = FloatProperty(
-    name='thign circumference',
+    name=pgettext('(C5) thign circumference'),
     description='',
     default=.51,
     min=0
   )
   scene.mannequin_foot_length = FloatProperty(
-    name='foot length',
+    name=pgettext('(L5) foot length'),
     description='',
     default=.26,
     min=0
@@ -300,11 +302,11 @@ def clear_props():
   del scene.mannequin_thigh_circumference
   del scene.mannequin_foot_length
   
-# メニューを構築する関数
-def menu_fn(self,context):
-  layout = self.layout
-  layout.separator()
-  layout.operator(CREATEMANNEQUIN_OT_CreateMannequinObject.bl_idname,icon='OUTLINER_OB_ARMATURE')
+# # メニューを構築する関数
+# def menu_fn(self,context):
+#   layout = self.layout
+#   layout.separator()
+#   layout.operator(CREATEMANNEQUIN_OT_CreateMannequinObject.bl_idname,icon='OUTLINER_OB_ARMATURE')
 
 # Blenderに登録するクラス
 classes = [
@@ -316,12 +318,12 @@ classes = [
 def register():
   for c in classes:
     bpy.utils.register_class(c)
-  bpy.types.VIEW3D_MT_mesh_add.append(menu_fn)
+  # bpy.types.VIEW3D_MT_mesh_add.append(menu_fn)
   init_props()
 
 # アドオン無効化時の処理
 def unregister():
   clear_props()
-  bpy.types.VIEW3D_MT_mesh_add.remove(menu_fn)
+  # bpy.types.VIEW3D_MT_mesh_add.remove(menu_fn)
   for c in classes:
     bpy.utils.unregister_class(c)
