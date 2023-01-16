@@ -1,7 +1,7 @@
 bl_info = {
   'name':'create_mannequin',
   'author':'masuda-u',
-  'version':(0,1),
+  'version':(1,0),
   'blender':(3,0,1),
   'location':'3D View Port > Object',
   'description':'create mannequin from body measurements',
