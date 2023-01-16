@@ -6,7 +6,7 @@ bl_info = {
   'location':'3D View Port > Object',
   'description':'create mannequin from body measurements',
   'warning':'',
-  'support':'TESTING',
+  'support':'COMMUNITY',
   'doc_url':'',
   'tracker_url':'',
   'category':'Object'
